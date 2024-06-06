@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Find Text in Nested Elements</title>
+</head>
+<body>
+    <div id="abc">
+        <div>Text in nested div 1</div>
+        <p>Text in nested paragraph</p>
+        <span>Text in nested span</span>
+        <div>
+            <div>Text in deeply nested div</div>
+        </div>
+    </div>
+
+    <div>
+        <div>Text in other div 1</div>
+        <div>Text in other div 2</div>
+    </div>
+
+    <script>
+        // Select the parent div with id 'abc'
+        const parentDiv = document.getElementById('abc');
+
+        // Function to recursively get text content of an element and its descendants
+        function getTextContent(element) {
+            let textContent = '';
+
+            // Iterate over all child nodes
+            element.childNodes.forEach((node) => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    // If the node is a text node, add its content
+                    textContent += node.textContent.trim() + ' ';
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    // If the node is an element node, recursively get its text content
+                    textContent += getTextContent(node) + ' ';
+                }
+            });
+
+            return textContent.trim();
+        }
+
+        // Get the text content of the parent div and its descendants
+        const allTextContent = getTextContent(parentDiv);
+        console.log(allTextContent);
+    </script>
+</body>
+</html>
