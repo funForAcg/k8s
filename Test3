@@ -1,0 +1,23 @@
+private static void processFile(File file) {
+    Pattern pattern = Pattern.compile("path=\"([^\"]*)\"");
+    String outputCsvPath = file.getParent() + "/" + file.getName().replaceAll("\\.[^.]*$", "") + ".csv";
+
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputCsvPath));
+         Stream<String> stream = Files.lines(file.toPath())) {
+        writer.write("Matched Text\n");
+        
+        stream.forEach(line -> {
+            Matcher matcher = pattern.matcher(line);
+            while (matcher.find()) {
+                try {
+                    String matchedText = matcher.group(1);
+                    writer.write(matchedText + "\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
