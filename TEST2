@@ -1,0 +1,62 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class FileProcessor {
+
+    public static void main(String[] args) {
+        // 指定文件夹路径
+        String folderPath = "path/to/your/folder";
+        // 指定输出CSV文件路径
+        String outputCsvPath = "path/to/your/test.csv";
+        
+        // 遍历文件夹并处理文件
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputCsvPath))) {
+            // 写入CSV头部
+            writer.write("Matched Text\n");
+            
+            // 获取所有文件
+            List<File> files = Files.walk(Paths.get(folderPath))
+                                    .filter(Files::isRegularFile)
+                                    .map(path -> path.toFile())
+                                    .collect(Collectors.toList());
+
+            // 遍历文件
+            for (File file : files) {
+                processFile(file, writer);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void processFile(File file, BufferedWriter writer) {
+        // 正则表达式匹配以"path=\""开头以"结尾的文字
+        Pattern pattern = Pattern.compile("path=\"([^\"]*)\"");
+        
+        try (Stream<String> stream = Files.lines(file.toPath())) {
+            stream.forEach(line -> {
+                Matcher matcher = pattern.matcher(line);
+                while (matcher.find()) {
+                    try {
+                        // 提取匹配结果的核心内容并写入CSV文件
+                        String matchedText = matcher.group(1);
+                        writer.write(matchedText + "\n");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
