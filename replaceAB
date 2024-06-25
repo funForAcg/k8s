@@ -1,0 +1,39 @@
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
+
+public class TextReplacer {
+
+    public static void main(String[] args) {
+        // 指定文件夹路径
+        String folderPath = "your_folder_path";
+
+        // 遍历文件夹
+        try (Stream<Path> paths = Files.walk(Paths.get(folderPath))) {
+            paths.filter(Files::isRegularFile)
+                 .forEach(path -> {
+                     try {
+                         // 读取文件内容
+                         String content = new String(Files.readAllBytes(path));
+
+                         // 替换A为临时值，再将B替换为A，最后将临时值替换为B
+                         content = content.replace("A", "TEMP_A")
+                                          .replace("B", "A")
+                                          .replace("TEMP_A", "B");
+
+                         // 写回文件
+                         Files.write(path, content.getBytes());
+                     } catch (IOException e) {
+                         System.err.println("Error processing file: " + path);
+                         e.printStackTrace();
+                     }
+                 });
+        } catch (IOException e) {
+            System.err.println("Error walking through the folder: " + folderPath);
+            e.printStackTrace();
+        }
+    }
+}
