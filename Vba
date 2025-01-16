@@ -1,0 +1,72 @@
+Sub GenerateJavaFiles()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim currentClassName As String
+    Dim previousClassName As String
+    Dim javaContent As String
+    Dim fieldName As String
+    Dim fieldType As String
+    Dim filePath As String
+    Dim fso As Object
+    Dim file As Object
+
+    ' 指定工作表和输出路径
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' 假设数据在 Sheet1
+    filePath = "C:\GeneratedJavaFiles\" ' Java 文件的输出目录
+
+    ' 确保输出目录存在
+    If Dir(filePath, vbDirectory) = "" Then
+        MkDir filePath
+    End If
+
+    ' 获取最后一行
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+
+    ' 初始化变量
+    javaContent = ""
+    previousClassName = ""
+
+    ' 遍历每一行数据
+    For i = 2 To lastRow ' 从第2行开始（假设第1行是表头）
+        currentClassName = ws.Cells(i, 1).Value
+        fieldName = ws.Cells(i, 2).Value
+        fieldType = ws.Cells(i, 3).Value
+
+        ' 如果检测到新类名，则保存上一个类，并开始新类
+        If currentClassName <> previousClassName And previousClassName <> "" Then
+            javaContent = javaContent & "}" ' 结束类
+            SaveToFile filePath, previousClassName, javaContent
+            javaContent = "" ' 重置内容
+        End If
+
+        ' 如果是新类名，初始化类
+        If currentClassName <> previousClassName Then
+            javaContent = "public class " & currentClassName & " {" & vbCrLf
+        End If
+
+        ' 添加字段
+        javaContent = javaContent & "    private " & fieldType & " " & fieldName & ";" & vbCrLf
+
+        ' 更新上一行类名
+        previousClassName = currentClassName
+    Next i
+
+    ' 保存最后一个类
+    If javaContent <> "" Then
+        javaContent = javaContent & "}"
+        SaveToFile filePath, previousClassName, javaContent
+    End If
+
+    MsgBox "Java 文件已生成到 " & filePath, vbInformation
+End Sub
+
+' 保存内容到文件的辅助函数
+Sub SaveToFile(filePath As String, className As String, content As String)
+    Dim fso As Object
+    Dim file As Object
+
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    Set file = fso.CreateTextFile(filePath & className & ".java", True)
+    file.Write content
+    file.Close
+End Sub
